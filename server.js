@@ -1,7 +1,6 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
-let data = require('./db/db.json');
 const fs = require('fs')
 
 
@@ -22,31 +21,32 @@ app.use(express.static('public'));
 
 
 app.get('/notes', (req, res) => {
-    res.sendFile(path.join(__dirname, './public/index.html'));
+    res.sendFile(path.join(__dirname, './public/notes.html'));
 });
 
 
 
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, './public/notes.html'));
+    res.sendFile(path.join(__dirname, './public/index.html'));
 });
 
 app.get('/api/notes', (req, res) => {
     fs.readFile('./db/db.json', JSON.stringify(data), err => {
         if (err){
             console.log(err)
-        } else {
-            console.log('Success')
-        }
+            res.status(500).json({ error: 'Failed to save note.' });
+            return
+        } 
+        const notes = JSON.parse(data);
+        res.json(notes);
     });
-    res.json(data);
 });
 
 // post /api/notes should receive a new note to save on the request body, add it to the db.json file
 app.post('/api/notes', (req, res) => {
     const newNote = req.body;
     newNote.id = uuidv4(); // creates a unique id for each note
-    fs.readFile('./db/db.json', 'utf-8', (err, data) => {
+    fs.readFile('./db/db.json', 'utf8', (err, data) => {
         if (err) {
             console.error(err);
             res.status(500).json({ error: 'Failed to save note.' });
