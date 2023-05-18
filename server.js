@@ -1,5 +1,5 @@
 const express = require('express');
-const { v4: uuidv4 }= require('uuid');
+const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 let data = require('./db/db.json');
 const fs = require('fs')
@@ -22,7 +22,7 @@ app.use(express.static('public'));
 
 
 app.get('/notes', (req, res) => {
-    res.sendFile(path.join(__dirname, './public/notes.html'));
+    res.sendFile(path.join(__dirname, './public/index.html'));
 });
 
 
@@ -46,30 +46,52 @@ app.get('/api/notes', (req, res) => {
 app.post('/api/notes', (req, res) => {
     const newNote = req.body;
     newNote.id = uuidv4(); // creates a unique id for each note
-    fs.readFile('./db/db.json', JSON.stringify(data), err => {
-        if (err) throw err;
+    fs.readFile('./db/db.json', 'utf-8', (err, data) => {
+        if (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Failed to save note.' });
+            return;
+        }
+    
         const notes = JSON.parse(data);
         notes.push(newNote);
-        fs.writeFile('./db/db.json', JSON.stringify(notes), err => {
-            if (err) throw err;
+    
+        fs.writeFile('./db/db.json', JSON.stringify(notes), (err) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Failed to save note.' });
+                return;
+            }
+    
             res.json(newNote);
         });
-    });    
-});
-
+    });
 
 
 
 app.delete('/api/notes/:id', (req, res) => {
     const idDelete = req.params.id;
     data - data.filter((note) => note.id !== idDelete);
-    fs.readFile('./db/db.json', JSON.stringify(data), err => {
-        if (err){
+    fs.readFile('./db/db.json', 'utf-8', (err, data) => {
+        if (err) {
+            console.error(err);
             res.sendStatus(500);
-        } else {
-            console.log('Success')
+            return;
         }
-    })
+    
+        let notes = JSON.parse(data);
+        notes = notes.filter((note) => note.id !== idDelete);
+    
+        fs.writeFile('./db/db.json', JSON.stringify(notes), (err) => {
+            if (err) {
+                console.error(err);
+                res.sendStatus(500);
+                return;
+            }
+    
+            res.sendStatus(200);
+        });
+    });
 });
 
 app.listen(PORT, () => 
