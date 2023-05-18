@@ -1,6 +1,7 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
+const data = require('./db/db.json');
 const fs = require('fs')
 
 
@@ -10,24 +11,17 @@ const PORT = process.env.PORT || 3001
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-
 app.use(express.static('public'));
 
 
-
-
-
-
-
 app.get('/notes', (req, res) => {
-    res.sendFile(path.join(__dirname, './public/index.html'));
+    res.sendFile(path.join(__dirname, './public/notes.html'));
 });
 
 
 
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, './public/notes.html'));
+    res.sendFile(path.join(__dirname, './public/index.html'));
 });
 
 app.get('/api/notes', (req, res) => {
